@@ -111,7 +111,7 @@ export default {
     localStorageImage: [],
     isLoadingGeolocation: false,
     onGeolocationErrors: false,
-    geolocationErrorMessage: 'Error on get location',
+    geolocationErrorMessage: 'Error on get location, please try again.',
     post: {
       id: uid(),
       location: '',
@@ -235,6 +235,23 @@ export default {
       this.geolocationErrorMessage = 'Geolocation not allowed'
     },
     createPost () {
+      let formData = new FormData()
+      formData.append('id', this.post.id)
+      formData.append('location', this.post.location)
+      formData.append('created_at', this.post.created_at)
+      formData.append('caption', this.post.caption)
+      formData.append('file', this.post.photo, this.post.id + '.png')
+
+      this.$axios.post(`${process.env.API}/create-post`, formData)
+        .then(res => {
+          console.log(res)
+        })
+        .catch(err => {
+          console.log(err)
+          // this.$root.$emit('TriggerAppBanner', err)
+        })
+        .finally(() => {
+        })
     }
   },
 
