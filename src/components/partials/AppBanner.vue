@@ -11,6 +11,14 @@
     </div>
     <template v-slot:action>
       <q-btn
+        v-show="content.isInstaller"
+        @click="$root.$emit('TriggerAppInstaller')"
+        flat
+        dense
+        color="white"
+        icon="eva-checkmark-circle-2-outline"
+      />
+      <q-btn
         @click="$root.$emit('TriggerAppBanner')"
         flat
         dense
@@ -29,11 +37,6 @@ export default {
       type: Object,
       required: true
     }
-  },
-  mounted () {
-    setTimeout(() => {
-      this.$root.$emit('TriggerAppBanner')
-    }, 5000)
   }
 }
 </script>
