@@ -3,11 +3,13 @@
     <transition name="banner" mode="out-in">
       <app-banner
         v-if="showBanner"
-        :message="bannerMessage"
+        :content="bannerData"
         class="banner absolute full-width"
       />
     </transition>
-    <router-view class="q-pa-md "/>
+    <transition name="fade" mode="out-in">
+      <router-view class="q-pa-md "/>
+    </transition>
   </q-page-container>
 </template>
 
@@ -21,14 +23,14 @@ export default {
   },
   data: () => ({
     showBanner: false,
-    bannerMessage: ''
+    bannerData: {}
   }),
   beforeMount () {
     this.$root.$on('TriggerAppBanner', this.toggleBanner)
   },
   methods: {
-    toggleBanner (message) {
-      this.bannerMessage = message
+    toggleBanner (notification) {
+      this.bannerData = notification
       this.showBanner = !this.showBanner
     }
   }
@@ -38,13 +40,23 @@ export default {
 <style lang="scss">
 .banner-enter-active,
 .banner-leave-active {
-  transition: all 0.5s;
+  transition: all 0.2s;
 }
 .banner-enter,
 .banner-leave-to {
   opacity: 0;
   height: 0;
   transform: translateY(-56px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+  max-height: 0px;
 }
 
 .banner {

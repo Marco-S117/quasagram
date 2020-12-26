@@ -2,9 +2,13 @@
   <q-banner
     inline-actions
     dense
-    class="text-white bg-red"
+    :class="`bg-${content.color}`"
+    class="text-white"
   >
-    {{ message }}
+    <div class="flex items-center">
+      <q-icon :name="content.icon" />
+      <span class="q-ml-sm">{{ content.msg }}</span>
+    </div>
     <template v-slot:action>
       <q-btn
         @click="$root.$emit('TriggerAppBanner')"
@@ -20,7 +24,17 @@
 <script>
 export default {
   name: 'app-banner',
-  props: ['message']
+  props: {
+    content: {
+      type: Object,
+      required: true
+    }
+  },
+  mounted () {
+    setTimeout(() => {
+      this.$root.$emit('TriggerAppBanner')
+    }, 5000)
+  }
 }
 </script>
 
