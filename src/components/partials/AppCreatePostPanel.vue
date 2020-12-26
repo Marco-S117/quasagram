@@ -15,46 +15,42 @@
           ref="canvas"
         />
       </transition>
+      <q-btn
+        v-if="hasCameraSupport"
+        @click="captureDeleteCameraStramFrame"
+        :icon="isImageCaptured ? 'eva-trash' : 'eva-camera'"
+        size="18px"
+        :class="{ 'ready': isPostReadyToSend }"
+        color="primary"
+        round
+      />
+      <q-btn
+        v-else
+        @click="showFilePicker"
+        :icon="isImageCaptured ? 'eva-trash' : 'eva-upload-outline'"
+        :size="$q.screen.xs ? '18px' : '24px'"
+        :class="{ 'ready': isPostReadyToSend }"
+        color="primary"
+        round
+      />
+      <q-file
+        @input="captureDeleteLocalImageFile"
+        v-model="localStorageImage"
+        ref="fileInput"
+        accept="image/*"
+        style="display: none;"
+      />
+      <q-btn
+        v-show="isPostReadyToSend"
+        @click="createPost"
+        :class="{ 'ready': isPostReadyToSend }"
+        color="primary"
+        icon="eva-cloud-upload-outline"
+        size="18px"
+        round
+      />
     </div>
-    <div class="camera-input-row row justify-center text-center q-my-md">
-      <div class="col-12 col-sm-6">
-        <q-btn
-          v-if="hasCameraSupport"
-          @click="captureDeleteCameraStramFrame"
-          :icon="isImageCaptured ? 'eva-trash' : 'eva-camera'"
-          :size="$q.screen.xs ? '18px' : '24px'"
-          :class="{ 'ready': isPostReadyToSend }"
-          color="primary"
-          round
-        />
-        <q-btn
-          v-else
-          @click="showFilePicker"
-          :icon="isImageCaptured ? 'eva-trash' : 'eva-upload-outline'"
-          :size="$q.screen.xs ? '18px' : '24px'"
-          :class="{ 'ready': isPostReadyToSend }"
-          color="primary"
-          round
-        />
-        <q-file
-          @input="captureDeleteLocalImageFile"
-          v-model="localStorageImage"
-          ref="fileInput"
-          accept="image/*"
-          style="display: none;"
-        />
-        <q-btn
-          v-show="isPostReadyToSend"
-          @click="createPost"
-          :class="{ 'ready': isPostReadyToSend }"
-          color="primary"
-          icon="eva-cloud-upload-outline"
-          :size="$q.screen.xs ? '18px' : '24px'"
-          round
-        />
-      </div>
-    </div>
-    <div class="row justify-center">
+    <div class="row justify-center q-mt-xl">
       <div class="col-12 col-sm-6">
         <q-input
           v-show="hasGeolocationSupport"
@@ -236,6 +232,8 @@ export default {
     },
     createPost () {
       let formData = new FormData()
+      let notification = {}
+
       formData.append('id', this.post.id)
       formData.append('location', this.post.location)
       formData.append('created_at', this.post.created_at)
@@ -244,11 +242,21 @@ export default {
 
       this.$axios.post(`${process.env.API}/create-post`, formData)
         .then(res => {
-          console.log(res)
+          notification = {
+            msg: 'Post created with success!',
+            color: 'green',
+            icon: 'eva-checkmark-circle-2-outline'
+          }
+          this.$root.$emit('TriggerAppBanner', notification)
+          this.$router.push({ name: 'Home' })
         })
         .catch(err => {
-          console.log(err)
-          // this.$root.$emit('TriggerAppBanner', err)
+          notification = {
+            msg: err.toString(),
+            color: 'red',
+            icon: 'eva-alert-circle-outline'
+          }
+          this.$root.$emit('TriggerAppBanner', notification)
         })
         .finally(() => {
         })
@@ -283,30 +291,20 @@ export default {
     height: 100%;
     padding: 4px;
   }
-}
-.camera-input-row {
-  position: relative;
+
   button {
     position: absolute;
-    top: -50px;
+    bottom: -24px;
     left: 50%;
     transform: translateX(-50%);
     transition: all 0.4s ease-in-out;
-    &:first-child.ready {
-      left: 35%;
-      transform: translateX(-35%);
-      @media (max-width: $breakpoint-xs-max) {
-        left: 20%;
-        transform: translateX(-20%);
-      }
+    &:first-of-type.ready {
+      left: 25%;
+      transform: translateX(-25%);
     }
-    &:last-child.ready {
-      left: 65%;
-      transform: translateX( -65%);
-      @media (max-width: $breakpoint-xs-max) {
-        left: 80%;
-        transform: translateX( -80%);
-      }
+    &:last-of-type.ready {
+      left: 75%;
+      transform: translateX( -75%);
     }
   }
 }
