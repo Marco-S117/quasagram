@@ -46,7 +46,7 @@ export default {
   methods: {
     getPostFromDB () {
       this.isLoadingPosts = true
-      this.$axios.get('http://localhost:3000/posts')
+      this.$axios.get(`${process.env.API}/posts`)
         .then(res => {
           this.posts = res.data
         })

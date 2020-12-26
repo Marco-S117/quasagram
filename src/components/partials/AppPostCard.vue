@@ -20,8 +20,8 @@
     </q-item>
     <q-separator />
     <q-img
-      :src="data.imageUrl"
-      :placeholder-src="data.imageUrl"
+      :src="data.imgUrl"
+      :placeholder-src="data.imgUrl"
       transition="fade-transition"
       :ratio="16/9"
       spinner-color="grey-10"
