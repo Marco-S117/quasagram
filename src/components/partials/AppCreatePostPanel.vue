@@ -57,15 +57,22 @@
     <div class="row justify-center">
       <div class="col-12 col-sm-6">
         <q-input
+          v-show="hasGeolocationSupport"
           v-model="post.location"
+          @blur="onGeolocationErrors = false"
           label="Location"
           type="text"
+          :disable="!isGeolocationAllowed"
+          :error="onGeolocationErrors"
+          :error-message="geolocationErrorMessage"
+          no-error-icon
           dense
           class="col-12 q-my-sm"
         >
           <template v-slot:append>
             <q-btn
-              @click="getUserLocation"
+              @click="checkDeviceGelocation"
+              :loading="isLoadingGeolocation"
               color="primary"
               icon="eva-navigation-2-outline"
               flat
@@ -94,10 +101,17 @@ export default {
   beforeMount () {
     this.initCamera()
   },
+  beforeDestroy () {
+    this.disableCamera()
+  },
   data: () => ({
     hasCameraSupport: true,
+    isGeolocationAllowed: true,
     isImageCaptured: false,
     localStorageImage: [],
+    isLoadingGeolocation: false,
+    onGeolocationErrors: false,
+    geolocationErrorMessage: 'Error on get location',
     post: {
       id: uid(),
       location: '',
@@ -107,14 +121,15 @@ export default {
     }
   }),
   computed: {
+    hasGeolocationSupport () {
+      return navigator.geolocation ? true : false
+    },
     isPostReadyToSend () {
-      console.log(!!(this.post.photo && this.post.location && this.post.caption));
       return !!(this.post.photo && this.post.location && this.post.caption)
     }
   },
   methods: {
     initCamera () {
-      console.log('Init camera')
       navigator.mediaDevices.getUserMedia({
         video: true
       })
@@ -123,6 +138,11 @@ export default {
       })
       .catch(err => {
         this.hasCameraSupport = false
+      })
+    },
+    disableCamera () {
+      this.$refs.video.srcObject.getVideoTracks().forEach(track => {
+        track.stop()
       })
     },
     showFilePicker () {
@@ -144,6 +164,9 @@ export default {
         canvas.height = video.getBoundingClientRect().height
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
         this.post.photo = this.dataURItoBlob(canvas.toDataURL())
+        this.disableCamera()
+      } else {
+        this.initCamera()
       }
       this.isImageCaptured = !this.isImageCaptured
     },
@@ -185,10 +208,34 @@ export default {
       let blob = new Blob([ab], {type: mimeString});
       return blob;
     },
+    checkDeviceGelocation () {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(this.onAccessAllowed, this.onAccessDenied)
+      } else {
+        console.log('Geolocation not supported')
+      }
+    },
+    onAccessAllowed (position) {
+      this.isLoadingGeolocation = true
+      const API_URL = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1`
+      this.$axios.get(API_URL)
+        .then(res => {
+          this.post.location = res.data.city + ',' + res.data.region
+        })
+        .catch(err => {
+          this.onGeolocationErrors = true
+        })
+        .finally(() => {
+          this.isLoadingGeolocation = false
+        })
+    },
+    onAccessDenied (err) {
+      this.isGeolocationAllowed = false
+      this.onGeolocationErrors = true
+      this.geolocationErrorMessage = 'Geolocation not allowed'
+    },
     createPost () {
-    },
-    getUserLocation () {
-    },
+    }
   },
 
 }
