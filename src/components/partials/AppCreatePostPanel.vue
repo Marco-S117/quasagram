@@ -89,6 +89,7 @@
 </template>
 
 <script>
+import { Notify } from 'quasar'
 import { uid } from 'quasar'
 require('md-gum-polyfill')
 
@@ -122,6 +123,10 @@ export default {
     },
     isPostReadyToSend () {
       return !!(this.post.photo && this.post.location && this.post.caption)
+    },
+    isBgSyncSupported () {
+      if ('serviceWorker' in navigator  && 'SyncManager' in window) return true
+      return false
     }
   },
   methods: {
@@ -232,7 +237,7 @@ export default {
     },
     createPost () {
       let formData = new FormData()
-      let notification = {}
+      let notifyMessage = ''
 
       formData.append('id', this.post.id)
       formData.append('location', this.post.location)
@@ -242,23 +247,23 @@ export default {
 
       this.$axios.post(`${process.env.API}/create-post`, formData)
         .then(res => {
-          notification = {
-            msg: 'Post created with success!',
-            color: 'green',
-            icon: 'eva-checkmark-circle-2-outline'
-          }
-          this.$root.$emit('TriggerAppBanner', notification)
-          this.$router.push({ name: 'Home' })
+          notifyMessage = 'Post created successfully'
+          setTimeout(() => {
+            this.$router.push({ name: 'Home' })
+          }, 1000)
         })
         .catch(err => {
-          notification = {
-            msg: err.toString(),
-            color: 'red',
-            icon: 'eva-alert-circle-outline'
+          if (!navigator.onLine && this.isBgSyncSupported) {
+            notifyMessage = 'Post created offline!'
+          } else {
+            notifyMessage = 'Could not create post now!'
           }
-          this.$root.$emit('TriggerAppBanner', notification)
         })
         .finally(() => {
+          this.$q.notify({
+            message: notifyMessage,
+            timeout: 2000
+          })
         })
     }
   },
