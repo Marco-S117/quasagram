@@ -1,1 +1,44 @@
-// app global css in SCSS form
+/* GLOBAL APP CSS */
+
+/*
+  lIGHTHOUSE APP PERFORMANCE
+    - First Contentful Paint: https://web.dev/font-display/
+*/
+@font-face {
+  font-family: SEN;
+  src: url(../assets/fonts/sen/Sen-Regular.woff) format(woff);
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+body {
+  font-family: SEN, Roboto, Helvetica, sans-serif;
+}
+
+.app-main-container {
+  max-width: 975px;
+  margin: 0 auto;
+}
+
+/*
+  DISPLAY CLASS
+  Use it to show/hide element on different screen size
+*/
+.display-sm-screen {
+  @media (max-width: $breakpoint-xs-max) {
+    display: block;
+  }
+  @media (min-width: $breakpoint-sm-min) {
+    display: none;
+  }
+}
+
+.display-lg-screen {
+  @media (max-width: $breakpoint-xs-max) {
+    display: none;
+  }
+  @media (min-width: $breakpoint-sm-min) {
+    display: block;
+  }
+}
