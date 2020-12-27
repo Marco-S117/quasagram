@@ -3,8 +3,7 @@
     <transition name="banner" mode="out-in">
       <app-banner
         v-if="showBanner"
-        :content="bannerData"
-        class="banner absolute full-width"
+        class="banner fixed"
       />
     </transition>
     <transition name="fade" mode="out-in">
@@ -16,22 +15,52 @@
 <script>
 import AppBanner from 'components/partials/AppBanner'
 
+let deferredPrompt
+
 export default {
   name: 'app-main',
   components: {
     AppBanner
   },
   data: () => ({
-    showBanner: false,
-    bannerData: {}
+    showBanner: false
   }),
   beforeMount () {
-    this.$root.$on('TriggerAppBanner', this.toggleBanner)
+    this.$root.$on('TriggerAppInstallerBanner', this.appInstaller)
+  },
+  mounted () {
+    let neverShowInstallBanner = this.$q.localStorage.getItem('neverShowInstallBanner')
+
+    if (!neverShowInstallBanner) {
+      this.addInstallEventListener()
+    }
   },
   methods: {
-    toggleBanner (notification) {
-      this.bannerData = notification
-      this.showBanner = !this.showBanner
+    addInstallEventListener () {
+      window.addEventListener('beforeinstallprompt', (e) => {
+        this.showBanner = true
+        e.preventDefault()
+        deferredPrompt = e
+      })
+    },
+    appInstaller (choice) {
+      this.showBanner = false
+      if (choice === 'yes') this.installAppNow()
+      else if (choice === 'later') this.installAppLater()
+      else this.installAppNever()
+    },
+    installAppNow () {
+      deferredPrompt.prompt()
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') this.installAppNever()
+        else this.installAppLater()
+      })
+    },
+    installAppLater () {
+      this.$q.localStorage.set('neverShowInstallBanner', false)
+    },
+    installAppNever () {
+      this.$q.localStorage.set('neverShowInstallBanner', true)
     }
   }
 }
@@ -46,7 +75,7 @@ export default {
 .banner-leave-to {
   opacity: 0;
   height: 0;
-  transform: translateY(-56px);
+  transform: translateX(100%);
 }
 
 .fade-enter-active,
@@ -56,11 +85,11 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
-  max-height: 0px;
 }
 
 .banner {
   z-index: 100;
-  max-height: 56px;
+  width: 100%;
+  max-width: 975px;
 }
 </style>

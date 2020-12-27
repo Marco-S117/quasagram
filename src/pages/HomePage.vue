@@ -45,29 +45,16 @@ export default {
   }),
   methods: {
     getPostFromDB () {
-      let notification = {}
-
       this.isLoadingPosts = true
       this.$axios.get(`${process.env.API}/posts`)
         .then(res => {
-          notification = {
-            msg: 'Install this site as PWA!',
-            icon: 'eva-alert-circle-outline',
-            color: 'primary',
-            isInstaller: true
-          }
           this.posts = res.data
         })
         .catch(err => {
-          notification = {
-            msg: err.toString(),
-            icon: 'eva-alert-circle-outline',
-            color: 'red'
-          }
+          console.log(err)
         })
         .finally(() => {
           this.isLoadingPosts = false
-          this.$root.$emit('TriggerAppBanner', notification)
         })
     }
   }
